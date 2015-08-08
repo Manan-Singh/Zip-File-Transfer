@@ -1,5 +1,6 @@
 package com.singh.ziptransfer.core;
 
+import java.io.File;
 import java.net.UnknownHostException;
 
 import javafx.application.Application;
@@ -18,6 +19,7 @@ import com.singh.ziptransfer.clientside.Client;
 import com.singh.ziptransfer.clientside.ClientPromptPane;
 import com.singh.ziptransfer.serverside.Server;
 import com.singh.ziptransfer.serverside.ServerPromptPane;
+import com.singh.ziptransfer.ziphandling.FilePickPrompt;
 
 /**
  * @author Manan Singh
@@ -28,6 +30,7 @@ public class MainDriver extends Application {
 	private BorderPane root;
 	private Scene scene;
 	private static ConnectionMode server_or_client;
+	private static File fileToUse;
 	
 	public static void main(String[] args){
 		launch(args);
@@ -68,6 +71,15 @@ public class MainDriver extends Application {
 				root.setCenter(new ClientPromptPane());
 			}});
 		
+		create.setOnAction(new EventHandler<ActionEvent>(){
+
+			@Override
+			public void handle(ActionEvent e) {
+				root.setCenter(new FilePickPrompt());
+			}
+			
+		});
+		
 		host.setMaxWidth(Double.MAX_VALUE);
 		recieve.setMaxWidth(Double.MAX_VALUE);
 		create.setMaxWidth(Double.MAX_VALUE);
@@ -95,5 +107,9 @@ public class MainDriver extends Application {
 			return false;
 		}
 		return true;
+	}
+	
+	public static void setFileToUse(File f){
+		fileToUse = f;
 	}
 }

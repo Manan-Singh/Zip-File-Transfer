@@ -10,6 +10,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
+import com.singh.ziptransfer.core.ErrorStage;
 import com.singh.ziptransfer.core.MainDriver;
 
 public class ClientPromptPane extends VBox {
@@ -25,6 +26,14 @@ public class ClientPromptPane extends VBox {
 		this.setPadding(new Insets(10, 10, 10, 10));
 		this.setSpacing(10);
 		cancel = new Button("Cancel");
+		cancel.setOnAction(new EventHandler<ActionEvent>(){
+
+			@Override
+			public void handle(ActionEvent e) {
+				MainDriver.backToHome();
+			}
+			
+		});
 		accept = new Button("Accept");
 		accept.setOnAction(new EventHandler<ActionEvent>(){
 
@@ -61,8 +70,7 @@ public class ClientPromptPane extends VBox {
 				x = Integer.parseInt(portField.getText());
 				return true;
 			}catch(NumberFormatException e){
-				//Error handling
-				System.out.println("Please enter a valid, unused port on your computer.");
+				new ErrorStage("Please enter a valid, unused port on the server computer.");
 				return false;
 			}
 		}else{

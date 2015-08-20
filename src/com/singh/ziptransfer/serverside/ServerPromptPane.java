@@ -10,6 +10,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
+import com.singh.ziptransfer.core.ErrorStage;
 import com.singh.ziptransfer.core.MainDriver;
 
 public class ServerPromptPane extends VBox {
@@ -31,16 +32,28 @@ public class ServerPromptPane extends VBox {
 
 			@Override
 			public void handle(ActionEvent e) {
-				if(verifyPortField()){
-					portField.setEditable(false);
-					MainDriver.initAsServer(Integer.parseInt(portField.getText()));
-					loadingView = MainDriver.getView();
-					addLoadingView();
+				if(MainDriver.getMainFile() != null){
+					if(verifyPortField()){
+						portField.setEditable(false);
+						MainDriver.initAsServer(Integer.parseInt(portField.getText()));
+						loadingView = MainDriver.getView();
+						addLoadingView();
+					}
+				}else{
+					new ErrorStage("Please select a file to use!");
 				}
 			}
 			
 		});
 		cancel = new Button("Cancel");
+		cancel.setOnAction(new EventHandler<ActionEvent>(){
+
+			@Override
+			public void handle(ActionEvent e) {
+				MainDriver.backToHome();
+			}
+			
+		});
 		HBox line0 = new HBox();
 		HBox line1 = new HBox();
 		HBox line2 = new HBox();
@@ -63,8 +76,7 @@ public class ServerPromptPane extends VBox {
 				x = Integer.parseInt(portField.getText());
 				return true;
 			}catch(NumberFormatException e){
-				//Error handling
-				System.out.println("Please enter a valid, unused port on your computer.");
+				new ErrorStage("Please enter a valid, unused port on your computer.");
 				return false;
 			}
 		}else{

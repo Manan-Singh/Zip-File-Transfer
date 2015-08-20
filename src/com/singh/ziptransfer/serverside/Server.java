@@ -11,9 +11,12 @@ import java.net.Socket;
 
 import javafx.concurrent.Task;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 import com.singh.ziptransfer.core.ConnectionMode;
+import com.singh.ziptransfer.core.ErrorStage;
+import com.singh.ziptransfer.core.MainDriver;
 
 public class Server implements ConnectionMode {
 
@@ -21,7 +24,6 @@ public class Server implements ConnectionMode {
 	private Socket clientSocket;
 	private BufferedInputStream in;
 	private OutputStream out;
-	//private Boolean connected = new Boolean(false);
 	private ServerView view;
 	
 	public Server(int port){
@@ -29,7 +31,7 @@ public class Server implements ConnectionMode {
 			server = new ServerSocket(port);
 			view = new ServerView();
 		} catch (IOException e) {
-			System.out.println("Server had trouble being set up.");
+			new ErrorStage("Server had trouble being set up.");
 			e.printStackTrace();
 		}
 		Task task = new Task(){
@@ -40,7 +42,6 @@ public class Server implements ConnectionMode {
 					System.out.println("SERVER- Waiting for a client to connect to...");
 					view.executeConnectionStates();
 					clientSocket = server.accept();
-					//connected = true;
 				}catch(IOException e){
 					System.out.println("Server had trouble connecting to a client.");
 					e.printStackTrace();
@@ -57,18 +58,15 @@ public class Server implements ConnectionMode {
 
 	@Override
 	public void communicate() {
-		//Test for now
-		File f = new File("CreateZipFileWithOutputStreams.zip");
+		File f = MainDriver.getMainFile();
 		byte[] buffer = new byte[(int)f.length()];
 		try {
 			in = new BufferedInputStream(new FileInputStream(f));
 			out = clientSocket.getOutputStream();
 		} catch (FileNotFoundException e) {
-			System.out.println("SERVER - Had trouble communicating with the client.");
-			e.printStackTrace();
+			new ErrorStage("SERVER - Had trouble communicating with the client.");
 		} catch (IOException e){
-			System.out.println("SERVER - There was an i/o error.");
-			e.printStackTrace();
+			new ErrorStage("SERVER - There was an i/o error.");
 		}
 		int count = 0;
 		try {
@@ -76,8 +74,7 @@ public class Server implements ConnectionMode {
 				out.write(buffer, 0, count);
 			}
 		} catch (IOException e) {
-			
-			e.printStackTrace();
+			new ErrorStage("Error in sending file.");
 		} 
 		try{
 			in.close();
@@ -85,10 +82,9 @@ public class Server implements ConnectionMode {
 			clientSocket.close();
 			server.close();
 		}catch(IOException e){
-			System.out.println("SERVER - Streams couldn't be properly closed.");
-			e.printStackTrace();
+			new ErrorStage("SERVER - Streams couldn't be properly closed.");
 		}
-		//connected = false;
+		view.displayFinish();
 	}
 	
 	public StackPane getView(){
@@ -97,17 +93,26 @@ public class Server implements ConnectionMode {
 	
 	private class ServerView extends StackPane {
 		
+		private VBox box;
 		private Text state;
+		private Text finished;
 		String[] connectionStates = {"Connecting to client.", "Connecting to client..",
 				"Connecting to client..."};
 		
 		public ServerView(){
+			box = new VBox();
 			state = new Text("Server is idle");
-			this.getChildren().add(state);
+			finished = new Text("");
+			box.getChildren().addAll(state, finished);
+			this.getChildren().add(box);
 		}
 		
 		public void setState(String state){
 			this.state.setText(state);
+		}
+		
+		public void displayFinish(){
+			finished.setText("Finished! Transfer complete!");
 		}
 		
 		public void executeConnectionStates(){

@@ -1,6 +1,7 @@
 package com.singh.ziptransfer.clientside;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,9 +9,11 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 import com.singh.ziptransfer.core.ConnectionMode;
+import com.singh.ziptransfer.core.ErrorStage;
 
 public class Client implements ConnectionMode {
 	
@@ -24,24 +27,28 @@ public class Client implements ConnectionMode {
 		try {
 			connection = new Socket(hostName, port);
 		} catch (IOException e) {
-			System.out.println("CLIENT - Can't connect to host.");
-			e.printStackTrace();
+			new ErrorStage("CLIENT - Can't connect to host.");
 		}
-		view.setState("Connected to " + connection.getInetAddress().getHostName() + " at port " + 
-				connection.getPort());
-		System.out.println("CLIENT - Connected to host at " + connection.getInetAddress().getHostAddress());
-		this.communicate();
+		if(connection != null){
+			view.setState("Connected to " + connection.getInetAddress().getHostName() + " at port " + 
+					connection.getPort());
+			this.communicate();
+		}
 	}
 
 	@Override
 	public void communicate() {
-		//Test for now
+		File zipFile = new File("NewZipFile.zip");
+		int counter = 1;
+		while(zipFile.exists()){
+			zipFile = new File("NewZipFile" + counter + ".zip");
+			counter++;
+		}
 		try {
 			in = connection.getInputStream();
-			out = new BufferedOutputStream(new FileOutputStream("NewZipFile.zip"));
+			out = new BufferedOutputStream(new FileOutputStream(zipFile));
 		} catch (IOException e) {
-			System.out.println("");
-			e.printStackTrace();
+			new ErrorStage("CLIENT - Streams could not be set up properly!");
 		}
 		byte[] buffer = new byte[2048];
 		int count = 0;
@@ -53,18 +60,18 @@ public class Client implements ConnectionMode {
 				System.out.print(x + " | ");
 			}
 		} catch (IOException e) {
-			System.out.println("CLIENT - Data could not be read.");
-			e.printStackTrace();
+			new ErrorStage("CLIENT - Data could not be read.");
 		}
 		try{
 			in.close();
 			out.close();
 			connection.close();
 		}catch(IOException e){
-			System.out.println("SERVER - Streams couldn't be properly closed.");
-			e.printStackTrace();
+			new ErrorStage("CLIENT - Streams couldn't be properly closed.");;
 		}
-		System.out.println("CLIENT - Done!");
+		view.setFinishMessage("Recieved file! File location:");
+		view.setPath(zipFile.getAbsolutePath());
+		
 	}
 
 	@Override
@@ -74,15 +81,31 @@ public class Client implements ConnectionMode {
 	
 	private class ClientView extends StackPane {
 		
+		private VBox box;
 		private Text state;
+		private Text finished;
+		private Text path;
 		
 		public ClientView(){
+			box = new VBox();
 			state = new Text();
-			this.getChildren().add(state);
+			finished = new Text();
+			path = new Text();
+			path.setWrappingWidth(450);
+			box.getChildren().addAll(state, finished, path);
+			this.getChildren().add(box);
 		}
 		
 		public void setState(String s){
 			state.setText(s);
+		}
+		
+		public void setFinishMessage(String s){
+			finished.setText(s);
+		}
+		
+		public void setPath(String s){
+			path.setText(s);
 		}
 	}
 }

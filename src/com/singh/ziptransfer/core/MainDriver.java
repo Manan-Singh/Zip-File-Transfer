@@ -1,6 +1,7 @@
 package com.singh.ziptransfer.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.UnknownHostException;
 
 import javafx.application.Application;
@@ -13,6 +14,7 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import com.singh.ziptransfer.clientside.Client;
@@ -26,11 +28,13 @@ import com.singh.ziptransfer.ziphandling.FilePickPrompt;
  */
 public class MainDriver extends Application {
 
-	private Stage primaryStage;
-	private BorderPane root;
-	private Scene scene;
+	private static Stage primaryStage;
+	private static BorderPane root;
+	private static Scene scene;
 	private static ConnectionMode server_or_client;
 	private static File fileToUse;
+	private static Text fileInUse;
+	private static VBox initPane;
 	
 	public static void main(String[] args){
 		launch(args);
@@ -43,7 +47,10 @@ public class MainDriver extends Application {
 		primaryStage.setResizable(false);
 		root = new BorderPane();
 		
-		VBox initPane = new VBox();
+		
+		fileInUse = new Text("File in use: None");
+		
+		initPane = new VBox();
 		initPane.setPadding(new Insets(10, 10, 10, 10));
 		initPane.setSpacing(10);
 		initPane.setAlignment(Pos.CENTER);
@@ -57,8 +64,6 @@ public class MainDriver extends Application {
 
 			@Override
 			public void handle(ActionEvent e) {
-				//TEST
-				//server_or_client = new Server(7012);
 				root.setCenter(new ServerPromptPane());
 			}});
 		
@@ -66,8 +71,6 @@ public class MainDriver extends Application {
 
 			@Override
 			public void handle(ActionEvent e) {
-				//Test
-				//server_or_client = new Client("Manan-laptop", 7012);
 				root.setCenter(new ClientPromptPane());
 			}});
 		
@@ -86,6 +89,7 @@ public class MainDriver extends Application {
 		
 		initPane.getChildren().addAll(host, recieve, create);
 		root.setCenter(initPane);
+		root.setTop(fileInUse);
 		scene = new Scene(root, 500, 500);
 		primaryStage.setScene(scene);
 		primaryStage.show();
@@ -111,5 +115,17 @@ public class MainDriver extends Application {
 	
 	public static void setFileToUse(File f){
 		fileToUse = f;
+	}
+	
+	public static void updateText() throws IOException {
+		fileInUse.setText("File in use: " + fileToUse.getName());
+	}
+	
+	public static void backToHome(){
+		root.setCenter(initPane);
+	}
+	
+	public static File getMainFile(){
+		return fileToUse;
 	}
 }
